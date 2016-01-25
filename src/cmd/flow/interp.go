@@ -13,14 +13,14 @@ func interpEvent(event interp.Event) {
 			"peer": evData["peer"],
 			"msg":  "\n" + evData["result"],
 		}
-		sendNetworkingCommand("send", args)
+		sendNetworkingCommand("reply", args)
 	case interp.Error:
 		evData := event.Data.(map[string]string)
 		args := map[string]string{
 			"peer": evData["peer"],
 			"msg":  "\n" + evData["error"],
 		}
-		sendNetworkingCommand("send", args)
+		sendNetworkingCommand("reply", args)
 	}
 }
 

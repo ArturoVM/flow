@@ -52,24 +52,27 @@ func loop(input <-chan common.Command) {
 	for c := range input {
 		switch c.Cmd {
 		case "interp":
-			interpOut, err := captureOutput()
+			interpOut, pipe, err := captureOutput()
 			if err != nil {
 				sendError(c.Args["peer"],
 					fmt.Sprintf("unable to capture script output: %s", err.Error()))
 				return
 			}
 			if err := env.LoadString(c.Args["code"]); err != nil {
+				pipe.Close()
 				<-interpOut
 				env.Clear()
 				sendError(c.Args["peer"],
 					fmt.Sprintf("unable to load code: %s", err.Error()))
 			} else if expr, err := env.Run(); err != nil {
+				pipe.Close()
 				<-interpOut
 				env.Clear()
 				sendError(c.Args["peer"],
 					fmt.Sprintf("unable to evaluate code: %s", err.Error()))
 			} else {
 				env.Clear()
+				pipe.Close()
 				o := <-interpOut
 				out <- Event{
 					Type: InterpDone,
@@ -93,11 +96,11 @@ func sendError(peer, err string) {
 	}
 }
 
-func captureOutput() (<-chan string, error) {
+func captureOutput() (<-chan string, *os.File, error) {
 	stdOut := os.Stdout
 	r, w, err := os.Pipe()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	os.Stdout = w
 	interpOut := make(chan string)
@@ -105,8 +108,7 @@ func captureOutput() (<-chan string, error) {
 		var buf bytes.Buffer
 		io.Copy(&buf, r)
 		interpOut <- buf.String()
-		w.Close()
 		os.Stdout = stdOut
 	}()
-	return interpOut, nil
+	return interpOut, w, nil
 }

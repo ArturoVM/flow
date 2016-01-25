@@ -30,6 +30,8 @@ const (
 	UsageRequested
 	// EvalRequested significa que otro nodo le ha pedido evaluar algo a este
 	EvalRequested
+	// GotEvalReply notifica que el resultado de la evaluación está listo
+	GotEvalReply
 	// Error reporta un error
 	Error
 )
@@ -98,13 +100,13 @@ func loop(input <-chan common.Command) {
 					Data: p,
 				}
 			}
-		case "send":
+		case "reply":
 			ipTable[c.Args["peer"]] <- c.Args["msg"]
 			close(ipTable[c.Args["peer"]])
 			delete(ipTable, c.Args["peer"])
 		case "eval":
 			evalInst := "eval::|:|flow-code|:|" + c.Args["code"] + "|:|flow-code|:|"
-			SendMessage(evalInst)
+			SendEval(evalInst)
 		default:
 		}
 	}

@@ -20,7 +20,7 @@ var ipTable = map[string]chan string{}
 func setServer() {
 	l, err := net.Listen(CONN_TYPE, CONN_HOST+":"+CONN_PORT)
 	if err != nil {
-		fmt.Println("connection error:", err.Error())
+		log.Println("connection error:", err.Error())
 		os.Exit(1)
 	}
 
@@ -89,8 +89,8 @@ func handleRequest(conn net.Conn, chan_server chan string) {
 		default:
 			conn.Write([]byte("fuck you\n\n\a\a\a"))
 			conn.Close()
+			return
 		}
-		//case "exec":  go Exec(conn, c)
 	}
 
 	go writeToConnection(conn, chan_server)
@@ -102,15 +102,3 @@ func writeToConnection(conn net.Conn, in <-chan string) {
 	}
 	conn.Close()
 }
-
-func AskUsage(conn net.Conn, c chan Event) {
-
-}
-
-// func Exec(conn net.Conn, c chan Event) {
-//     com := <- c
-//     switch com.Cmd {
-//     case "print" : fmt.Println(com.Args["msg"])
-//     default :
-//     }
-//}

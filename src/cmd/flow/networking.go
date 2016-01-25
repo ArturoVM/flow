@@ -43,6 +43,8 @@ func netEvent(event networking.Event) {
 	case networking.EvalRequested:
 		args := event.Data.(map[string]string)
 		sendInterpCommand("interp", args)
+	case networking.GotEvalReply:
+		uiPrint(event.Data.(string))
 	case networking.Error:
 		uiPrint(event.Data.(string))
 	}

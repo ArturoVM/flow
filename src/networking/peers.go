@@ -83,8 +83,8 @@ func selectPeer() (string, error) {
 	return "", errors.New("no peers found")
 }
 
-// SendMessage se encarga de mandarle algo a algún peer
-func SendMessage(msg string) {
+// SendEval se encarga
+func SendEval(evalMsg string) {
 	peer, err := selectPeer()
 	if err != nil {
 		out <- Event{
@@ -101,20 +101,22 @@ func SendMessage(msg string) {
 		}
 		return
 	}
-	c := make(chan string)
-	go handleConnection(conn, c)
-	c <- msg
+	conn.Write([]byte(evalMsg))
+	result := readEvalResult(conn)
+	out <- Event{
+		Type: GotEvalReply,
+		Data: result,
+	}
 }
 
-func handleConnection(conn net.Conn, c chan string) {
-	conn.Write([]byte(<-c))
+func readEvalResult(conn net.Conn) string {
 	buf := make([]byte, 1024)
 	_, err := conn.Read(buf)
+	conn.Close()
 	if err != nil {
 		log.Printf("error reading: %s", err.Error())
 	}
 	n := bytes.Index(buf, []byte{0})
 	reply := string(buf[:n])
-	fmt.Println(reply)
-	conn.Close()
+	return reply
 }
