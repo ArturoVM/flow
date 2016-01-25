@@ -85,6 +85,7 @@ func selectPeer() (string, error) {
 
 // SendEval se encarga
 func SendEval(evalMsg string) {
+	fmt.Println("sending eval msg")
 	peer, err := selectPeer()
 	if err != nil {
 		out <- Event{
@@ -93,6 +94,7 @@ func SendEval(evalMsg string) {
 		}
 		return
 	}
+	fmt.Println("selected peer")
 	conn, err := net.Dial("tcp", peer)
 	if err != nil {
 		out <- Event{
@@ -101,7 +103,9 @@ func SendEval(evalMsg string) {
 		}
 		return
 	}
+	fmt.Println("writing eval msg")
 	conn.Write([]byte(evalMsg))
+	fmt.Println("wrote eval msg")
 	result := readEvalResult(conn)
 	out <- Event{
 		Type: GotEvalReply,
@@ -110,6 +114,7 @@ func SendEval(evalMsg string) {
 }
 
 func readEvalResult(conn net.Conn) string {
+	fmt.Println("reading eval result")
 	buf := make([]byte, 1024)
 	_, err := conn.Read(buf)
 	conn.Close()
@@ -118,5 +123,6 @@ func readEvalResult(conn net.Conn) string {
 	}
 	n := bytes.Index(buf, []byte{0})
 	reply := string(buf[:n])
+	log.Println("got eval reply")
 	return reply
 }

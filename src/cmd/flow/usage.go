@@ -16,7 +16,7 @@ func usageEvent(event usage.Event) {
 			"peer": evData["peer"],
 			"msg":  evData["usage"],
 		}
-		sendNetworkingCommand("send", args)
+		sendNetworkingCommand("reply", args)
 	case usage.Error:
 		uiPrint(fmt.Sprintf("error: %s", event.Data.(string)))
 	}
