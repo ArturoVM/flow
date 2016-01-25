@@ -1,7 +1,6 @@
 package networking
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"net"
@@ -46,11 +45,10 @@ func getUsage(peerAddr string) (float64, error) {
 	}
 	conn.Write([]byte("usage"))
 	buf := make([]byte, 64)
-	_, err = conn.Read(buf)
+	n, err := conn.Read(buf)
 	if err != nil {
 		return 0.0, fmt.Errorf("error reading usage response: %s", err.Error())
 	}
-	n := bytes.Index(buf, []byte{0})
 	reply := string(buf[:n])
 	u, err := strconv.ParseFloat(reply, 64)
 	if err != nil {

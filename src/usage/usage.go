@@ -52,7 +52,7 @@ func loop(input <-chan common.Command) {
 			if err != nil {
 				out <- Event{
 					Type: Error,
-					Data: fmt.Sprintf("imposible obtener uso de CPU: %s", err.Error()),
+					Data: fmt.Sprintf("unable to get CPU usage: %s", err.Error()),
 				}
 			} else {
 				out <- Event{
@@ -67,7 +67,7 @@ func loop(input <-chan common.Command) {
 					Type: Error,
 					Data: map[string]string{
 						"peer":  c.Args["peer"],
-						"error": fmt.Sprintf("imposible obtener uso de CPU: %s", err.Error()),
+						"error": fmt.Sprintf("unable to get CPU usage: %s", err.Error()),
 					},
 				}
 			} else {

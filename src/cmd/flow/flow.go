@@ -12,7 +12,7 @@ import (
 func main() {
 	f, err := os.OpenFile("flow.log", os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
-		log.Fatalf("imposible crear archivo de log: %s", err.Error())
+		log.Fatalf("unable to create log file: %s", err.Error())
 	}
 	log.SetOutput(f)
 

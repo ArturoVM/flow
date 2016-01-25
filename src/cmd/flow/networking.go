@@ -19,7 +19,7 @@ func netEvent(event networking.Event) {
 	case networking.PeersFound:
 		peers, ok := event.Data.([]string)
 		if !ok {
-			log.Fatalf("datos incorrectos para evento 'peers-found'")
+			log.Fatalf("malformed data for event 'peers-found'")
 		}
 		p := formatPeersFound(peers)
 		uiPrint("[networking-module]:\n\n" + p)
@@ -27,7 +27,7 @@ func netEvent(event networking.Event) {
 		peer, ok := event.Data.(string)
 		peerMsg := ""
 		if !ok {
-			log.Fatalf("datos incorrectos para evento 'peer-selected'")
+			log.Fatalf("malformed data for event 'peers-found'")
 		} else {
 			peerMsg = "selected peer " + peer
 		}

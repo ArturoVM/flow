@@ -65,16 +65,16 @@ func In() chan<- common.Command {
 func loop(input <-chan common.Command) {
 	host, err := os.Hostname()
 	if err != nil {
-		log.Fatal("imposible obtener hostname para publicar servicio mDNS")
+		log.Fatal("unable to announce on mDNS: unable to obtain hostname")
 	}
 	info := []string{"Flow distributed computing peer"}
 	service, err := mdns.NewMDNSService(host, "_flow._tcp", "", "", 3569, nil, info)
 	if err != nil {
-		log.Fatal("imposible crear servicio de mDNS")
+		log.Fatal("unable to create mDNS service")
 	}
 	server, err := mdns.NewServer(&mdns.Config{Zone: service})
 	if err != nil {
-		log.Fatal("imposible iniciar servicio de mDNS")
+		log.Fatal("unable to start mDNS service")
 	}
 	defer server.Shutdown()
 

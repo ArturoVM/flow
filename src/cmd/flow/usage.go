@@ -9,7 +9,7 @@ import (
 func usageEvent(event usage.Event) {
 	switch event.Type {
 	case usage.SelfUsageReport:
-		uiPrint(fmt.Sprintf("%f", event.Data.(float64)))
+		uiPrint(fmt.Sprintf("[usage-module]:\n\n\t%f", event.Data.(float64)))
 	case usage.UsageReport:
 		evData := event.Data.(map[string]string)
 		args := map[string]string{

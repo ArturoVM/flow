@@ -58,7 +58,7 @@ func uiLoop() {
 	line := liner.NewLiner()
 	line.SetCtrlCAborts(true)
 
-	fmt.Print("\n\nFlow v0.1.0\n\nPress Ctrl+C twice to exit\n\n")
+	fmt.Print("\n\nFlow v0.1.0\n\nPress Ctrl+C to exit\n\n")
 
 	for {
 		if input, err := line.Prompt("flow> "); err == nil {
@@ -86,30 +86,20 @@ func uiLoop() {
 func checkCmd(cmd string, args string) {
 	switch cmd {
 	case "inspect":
-		fmt.Println("haciendo lookup, por favor espera...")
+		fmt.Println("performing lookup, please wait...")
 		out <- Event{
 			Type: PeerLookupRequested,
 		}
-	case "select-one":
-		fmt.Println("Selecting a peer")
-		out <- Event{
-			Type: PeerSelectRequested,
-		}
-	case "send":
-		fmt.Println("Sending message")
-		out <- Event{
-			Type: MessageSendRequested,
-			Data: args,
-		}
 	case "usage":
-		fmt.Println("obteniendo uso, por favor espera...")
+		fmt.Println("getting usage, please wait...")
 		out <- Event{
 			Type: UsageRequested,
 		}
 	case "eval":
 		code, err := ioutil.ReadFile(args)
 		if err != nil {
-			fmt.Printf("\nerror: %s\n", err.Error())
+			fmt.Printf("error: %s\n", err.Error())
+			return
 		}
 		out <- Event{
 			Type: InterpRequested,
@@ -117,7 +107,7 @@ func checkCmd(cmd string, args string) {
 		}
 	case "":
 	default:
-		fmt.Println("comando desconocido")
+		fmt.Println("unknown command")
 	}
 }
 
@@ -125,7 +115,7 @@ func moduleLoop(input <-chan common.Command) {
 	for c := range input {
 		switch c.Cmd {
 		case "print":
-			fmt.Printf("\n\n%s\n\nPresiona Enter para continuar...", c.Args["msg"])
+			fmt.Printf("\n\n%s\n\nPress Enter to continue...", c.Args["msg"])
 		default:
 		}
 	}

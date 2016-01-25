@@ -25,7 +25,7 @@ func setServer() {
 
 	// Close the listener when the application closes.
 	defer l.Close()
-	log.Println("Listening on " + CONN_HOST + ":" + CONN_PORT)
+	log.Println("listening on " + CONN_HOST + ":" + CONN_PORT)
 	for {
 		// Listen for an incoming connection.
 		conn, err := l.Accept()
@@ -66,7 +66,7 @@ func handleRequest(conn net.Conn, chan_server chan string) {
 			if len(ss) != 3 {
 				out <- Event{
 					Type: Error,
-					Data: "mal formato",
+					Data: "bad format",
 				}
 				conn.Close()
 			} else {
