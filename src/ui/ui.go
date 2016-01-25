@@ -125,7 +125,7 @@ func moduleLoop(input <-chan common.Command) {
 	for c := range input {
 		switch c.Cmd {
 		case "print":
-			fmt.Printf("\n%s\nPresiona Enter para continuar...", c.Args["msg"])
+			fmt.Printf("\n\n%s\n\nPresiona Enter para continuar...", c.Args["msg"])
 		default:
 		}
 	}

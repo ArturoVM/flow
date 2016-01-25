@@ -43,19 +43,12 @@ func setServer() {
 }
 
 func handleRequest(conn net.Conn, chan_server chan string) {
-	// Make a buffer to hold incoming data.
 	buf := make([]byte, 1024)
-	// Read the incoming connection into the buffer.
 	n, err := conn.Read(buf)
 	if err != nil {
 		log.Printf("error reading: %s", err.Error())
 	}
-
-	// Index returns the index of the first instance of sep
-	//n := bytes.Index(buf, []byte{0})
 	request := string(buf[:n])
-
-	//c := make(chan Event)
 
 	switch request {
 	case "usage":

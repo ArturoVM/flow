@@ -11,14 +11,14 @@ func interpEvent(event interp.Event) {
 		evData := event.Data.(map[string]string)
 		args := map[string]string{
 			"peer": evData["peer"],
-			"msg":  "\n" + evData["result"],
+			"msg":  "[remote:interp-module]:\n\n" + evData["result"],
 		}
 		sendNetworkingCommand("reply", args)
 	case interp.Error:
 		evData := event.Data.(map[string]string)
 		args := map[string]string{
 			"peer": evData["peer"],
-			"msg":  "\n" + evData["error"],
+			"msg":  "[remote:interp-module]:\n\n\t" + evData["error"],
 		}
 		sendNetworkingCommand("reply", args)
 	}

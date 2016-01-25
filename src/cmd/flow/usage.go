@@ -18,7 +18,12 @@ func usageEvent(event usage.Event) {
 		}
 		sendNetworkingCommand("reply", args)
 	case usage.Error:
-		uiPrint(fmt.Sprintf("error: %s", event.Data.(string)))
+		evData := event.Data.(map[string]string)
+		args := map[string]string{
+			"peer": evData["peer"],
+			"msg":  "[remote:usage-module]:\n\n\t" + evData["error"],
+		}
+		sendNetworkingCommand("reply", args)
 	}
 }
 

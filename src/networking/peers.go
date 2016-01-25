@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"strconv"
 
@@ -85,7 +84,6 @@ func selectPeer() (string, error) {
 
 // SendEval se encarga
 func SendEval(evalMsg string) {
-	fmt.Println("sending eval msg")
 	peer, err := selectPeer()
 	if err != nil {
 		out <- Event{
@@ -94,7 +92,6 @@ func SendEval(evalMsg string) {
 		}
 		return
 	}
-	fmt.Println("selected peer")
 	conn, err := net.Dial("tcp", peer)
 	if err != nil {
 		out <- Event{
@@ -103,26 +100,28 @@ func SendEval(evalMsg string) {
 		}
 		return
 	}
-	fmt.Println("writing eval msg")
 	conn.Write([]byte(evalMsg))
-	fmt.Println("wrote eval msg")
-	result := readEvalResult(conn)
+	result, err := readEvalResult(conn)
+	if err != nil {
+		out <- Event{
+			Type: Error,
+			Data: fmt.Sprintf("unable to read eval response: %s", err.Error()),
+		}
+		return
+	}
 	out <- Event{
 		Type: GotEvalReply,
 		Data: result,
 	}
 }
 
-func readEvalResult(conn net.Conn) string {
-	fmt.Println("reading eval result")
+func readEvalResult(conn net.Conn) (string, error) {
 	buf := make([]byte, 1024)
-	_, err := conn.Read(buf)
+	n, err := conn.Read(buf)
 	conn.Close()
 	if err != nil {
-		log.Printf("error reading: %s", err.Error())
+		return "", err
 	}
-	n := bytes.Index(buf, []byte{0})
 	reply := string(buf[:n])
-	log.Println("got eval reply")
-	return reply
+	return reply, nil
 }

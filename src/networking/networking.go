@@ -83,9 +83,16 @@ func loop(input <-chan common.Command) {
 		case "lookup-peers":
 			p := LookupPeers()
 			peerTable := <-p
-			out <- Event{
-				Type: PeersFound,
-				Data: peerTable,
+			if len(peerTable) < 1 {
+				out <- Event{
+					Type: Error,
+					Data: "no peers found",
+				}
+			} else {
+				out <- Event{
+					Type: PeersFound,
+					Data: peerTable,
+				}
 			}
 		case "select-peer":
 			p, err := selectPeer()
