@@ -19,7 +19,7 @@ func uiEvent(event ui.Event) {
 		sendUsageCommand("get-usage-self", map[string]string{})
 	case ui.InterpRequested: // temp; luego se hará la selección de peers
 		args := map[string]string{"code": event.Data.(string)}
-		sendInterpCommand("interp", args)
+		sendNetworkingCommand("eval", args)
 	case ui.UserExit:
 		os.Exit(0)
 	default:

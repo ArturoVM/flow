@@ -1,8 +1,11 @@
 package interp
 
 import (
+	"bytes"
 	"common"
 	"fmt"
+	"io"
+	"os"
 
 	zygo "github.com/glycerine/zygomys/repl"
 )
@@ -49,28 +52,61 @@ func loop(input <-chan common.Command) {
 	for c := range input {
 		switch c.Cmd {
 		case "interp":
+			interpOut, err := captureOutput()
+			if err != nil {
+				sendError(c.Args["peer"],
+					fmt.Sprintf("unable to capture script output: %s", err.Error()))
+				return
+			}
 			if err := env.LoadString(c.Args["code"]); err != nil {
+				<-interpOut
 				env.Clear()
-				out <- Event{
-					Type: Error,
-					Data: fmt.Sprintf("imposible cargar código: %s", err.Error()),
-				}
+				sendError(c.Args["peer"],
+					fmt.Sprintf("unable to load code: %s", err.Error()))
 			} else if expr, err := env.Run(); err != nil {
+				<-interpOut
 				env.Clear()
-				out <- Event{
-					Type: Error,
-					Data: fmt.Sprintf("imposible cargar código: %s", err.Error()),
-				}
+				sendError(c.Args["peer"],
+					fmt.Sprintf("unable to evaluate code: %s", err.Error()))
 			} else {
 				env.Clear()
+				o := <-interpOut
 				out <- Event{
 					Type: InterpDone,
 					Data: map[string]string{
 						"peer":   c.Args["peer"],
-						"result": fmt.Sprintf(expr.SexpString()),
+						"result": o + expr.SexpString(),
 					},
 				}
 			}
 		}
 	}
+}
+
+func sendError(peer, err string) {
+	out <- Event{
+		Type: Error,
+		Data: map[string]string{
+			"peer":  peer,
+			"error": err,
+		},
+	}
+}
+
+func captureOutput() (<-chan string, error) {
+	stdOut := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		return nil, err
+	}
+	os.Stdout = w
+	interpOut := make(chan string)
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, r)
+		interpOut <- buf.String()
+		w.Close()
+		os.Stdout = stdOut
+	}()
+	return interpOut, nil
 }

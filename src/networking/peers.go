@@ -1,9 +1,12 @@
 package networking
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"net"
+	"strconv"
 
 	"github.com/hashicorp/mdns"
 )
@@ -37,61 +40,81 @@ func LookupPeers() <-chan []string {
 	return resChan
 }
 
-func SelectPeer() (string, error) {
-	c := LookupPeers()
-	peers := <-c
-	// fmt.Println(len(peers))
-	//Regresa el segundo elemento de la lista de peers
-	if len(peers) > 0 {
-		peer_selected := peers[0]
-		return peer_selected, nil
+func getUsage(peerAddr string) (float64, error) {
+	conn, err := net.Dial("tcp", peerAddr)
+	if err != nil {
+		return 0.0, fmt.Errorf("error connecting to host: %s", err)
 	}
-	return "", errors.New("you are alone")
+	conn.Write([]byte("usage"))
+	buf := make([]byte, 64)
+	_, err = conn.Read(buf)
+	if err != nil {
+		return 0.0, fmt.Errorf("error reading usage response: %s", err.Error())
+	}
+	n := bytes.Index(buf, []byte{0})
+	reply := string(buf[:n])
+	u, err := strconv.ParseFloat(reply, 64)
+	if err != nil {
+		return 0.0, fmt.Errorf("error parsing usage: %s", err.Error())
+	}
+	return u, nil
 }
 
+func selectPeer() (string, error) {
+	c := LookupPeers()
+	peers := <-c
+	if len(peers) > 0 {
+		var peerSelected string
+		for i := range peers {
+			u, err := getUsage(peers[i])
+			if err != nil {
+				return "", err
+			}
+			if u < 20.0 {
+				peerSelected = peers[i]
+				break
+			}
+			if i == len(peers)-1 {
+				return "", errors.New("no suitable peer found")
+			}
+		}
+		return peerSelected, nil
+	}
+	return "", errors.New("no peers found")
+}
+
+// SendMessage se encarga de mandarle algo a algún peer
 func SendMessage(msg string) {
-	peer, _ := SelectPeer()
-	// fmt.Println(peer)
+	peer, err := selectPeer()
+	if err != nil {
+		out <- Event{
+			Type: Error,
+			Data: fmt.Sprintf("error selecting peer: %s", err.Error()),
+		}
+		return
+	}
 	conn, err := net.Dial("tcp", peer)
 	if err != nil {
-		fmt.Println("cannot connect to host")
+		out <- Event{
+			Type: Error,
+			Data: fmt.Sprintf("error connecting to host: %s", err),
+		}
+		return
 	}
-	c:= make(chan string)
+	c := make(chan string)
 	go handleConnection(conn, c)
 	c <- msg
 }
 
-
-// func handleRequest(conn net.Conn, c chan string) {
-// 	c := make(chan string)
-// 	go handleConnection(conn, c)
-//
-// }
-
-// func ConnectToPeer(addres string) {
-// 	conn, err := net.Dial("tcp", addres)
-// 	if err != nil {
-// 		fmt.Println("cannot connect to host")
-// 	}
-//
-// 	c:= make(chan string)
-//
-// 	go handleConnection(conn, c)
-// }
-
 func handleConnection(conn net.Conn, c chan string) {
-
-// 	switch v := <- c ; v {
-// 	case "w" :
-// 		log.Println("")
-// 		conn.Write([]byte("Ejecuta mi codigo"))
-// 	}
-	// 	switch v := <- c ; v {
-	// 	case "w" :
-	// 		log.Println("")
-	// 		conn.Write([]byte("Ejecuta mi codigo"))
-	// 	}
-	// msg := <- c
-	conn.Write([]byte(<- c))
+	conn.Write([]byte(<-c))
+	buf := make([]byte, 1024)
+	_, err := conn.Read(buf)
+	if err != nil {
+		log.Printf("error reading: %s", err.Error())
+	}
+	n := bytes.Index(buf, []byte{0})
+	reply := string(buf[:n])
+	fmt.Println(reply)
 	conn.Close()
 }

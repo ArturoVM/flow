@@ -24,13 +24,13 @@ const (
 	PeersFound
 	// Interp representa una solicitud de interpretación
 	Interp
-	// A peer has been chosen
+	// PeerSelected significa que un peer fue escogido
 	PeerSelected
-	// Get user processing usage
+	// UsageRequested significa que otro nodo ha pedido el % de CPU de este
 	UsageRequested
-	// Ask user to exec something
+	// EvalRequested significa que otro nodo le ha pedido evaluar algo a este
 	EvalRequested
-	//ERROR
+	// Error reporta un error
 	Error
 )
 
@@ -86,13 +86,12 @@ func loop(input <-chan common.Command) {
 				Data: peerTable,
 			}
 		case "select-peer":
-			p, err := SelectPeer()
+			p, err := selectPeer()
 			if err != nil {
 				out <- Event{
 					Type: Error,
 					Data: fmt.Sprintf("error selecting peer: %s", err),
 				}
-				fmt.Printf("\nerror selecting peer:\n %s\n", err)
 			} else {
 				out <- Event{
 					Type: PeerSelected,
@@ -103,17 +102,10 @@ func loop(input <-chan common.Command) {
 			ipTable[c.Args["peer"]] <- c.Args["msg"]
 			close(ipTable[c.Args["peer"]])
 			delete(ipTable, c.Args["peer"])
+		case "eval":
+			evalInst := "eval::|:|flow-code|:|" + c.Args["code"] + "|:|flow-code|:|"
+			SendMessage(evalInst)
 		default:
 		}
 	}
 }
-
-// // en paquete comp
-// func handleRequest(conn net.Conn, c chan string) {
-// 	switch v := <-c; v {
-// 	case "w":
-// 		log.Println("alibaba")
-// 		conn.Write([]byte("Ejecuta mi codigo"))
-// 	}
-// 	conn.Close()
-// }

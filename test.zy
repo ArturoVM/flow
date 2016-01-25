@@ -2,5 +2,6 @@
 (for [(def i 0) (< i 10) (def i (+ 1 i))]
      (println i)
      (set sum (+ sum i)))
-(println "hola putos")
-(println "PENE")
+(println "hola")
+(println "amigos")
+(println "adiós")
